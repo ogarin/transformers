@@ -21,7 +21,6 @@ class TFBenchmarkTest(unittest.TestCase):
                 result = model_result["result"][batch_size][sequence_length]
                 self.assertIsNotNone(result)
 
-    @require_tf
     def test_inference_no_configs_eager(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = TensorflowBenchmarkArguments(
