@@ -141,6 +141,7 @@ class PyTorchBenchmark(Benchmark):
 
             if self.args.is_tpu and self.args.torch_xla_tpu_print_metrics:
                 import torch_xla.debug.metrics as met
+
                 self.print_fn(met.metrics_report())
 
             return min(runtimes) / 10.0

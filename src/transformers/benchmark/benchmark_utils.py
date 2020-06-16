@@ -317,10 +317,11 @@ def start_memory_tracing(
             nvml.nvmlInit()
             devices = list(range(nvml.nvmlDeviceGetCount())) if gpus_to_trace is None else gpus_to_trace
             nvml.nvmlShutdown()
-            log_gpu = is_torch_available() or is_tf_available()
         except (OSError, nvml.NVMLError):
             logger.warning("Error while initializing comunication with GPU. " "We won't perform GPU memory tracing.")
             log_gpu = False
+        else:
+            log_gpu = is_torch_available() or is_tf_available()
     else:
         logger.warning(
             "py3nvml not installed, we won't log GPU memory usage. "

@@ -199,8 +199,15 @@ class TensorflowBenchmark(Benchmark):
                     )
                 if not self.args.is_gpu:
                     # cpu
-                    memory_bytes = measure_peak_memory_cpu(func)
-                    memory = Memory(memory_bytes) if isinstance(memory_bytes, int) else memory_bytes
+                    if self.args.trace_memory_line_by_line:
+                        logger.info(
+                            "When enabling line by line tracing, the max peak memory for CPU is inaccurate in Tensorflow."
+                        )
+                        memory = None
+                    else:
+                        memory_bytes = measure_peak_memory_cpu(func)
+                        memory = Memory(memory_bytes) if isinstance(memory_bytes, int) else memory_bytes
+                memory = 0
                 if self.args.is_gpu:
                     # gpu
                     if not is_py3nvml_available():
@@ -222,6 +229,8 @@ class TensorflowBenchmark(Benchmark):
 
                 if self.args.trace_memory_line_by_line:
                     summary = stop_memory_tracing(trace)
+                    if memory is None:
+                        memory.summary.total_memory
                 else:
                     summary = None
 
