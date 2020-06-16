@@ -213,7 +213,6 @@ class TensorflowBenchmark(Benchmark):
                     else:
                         memory_bytes = measure_peak_memory_cpu(func)
                         memory = Memory(memory_bytes) if isinstance(memory_bytes, int) else memory_bytes
-                memory = 0
                 if self.args.is_gpu:
                     # gpu
                     if not is_py3nvml_available():
