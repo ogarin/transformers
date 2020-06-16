@@ -98,6 +98,14 @@ try:
 except ImportError:
     _py3nvml_available = False
 
+
+try:
+    from apex import amp
+
+    _has_apex = True
+except ImportError:
+    _has_apex = False
+
 default_cache_path = os.path.join(torch_cache_home, "transformers")
 
 
@@ -138,6 +146,10 @@ def is_psutil_available():
 
 def is_py3nvml_available():
     return _py3nvml_available
+
+
+def is_apex_available():
+    return _has_apex
 
 
 def add_start_docstrings(*docstr):

@@ -21,7 +21,13 @@
 import logging
 import timeit
 
-from transformers import MODEL_MAPPING, MODEL_WITH_LM_HEAD_MAPPING, PretrainedConfig, is_torch_available
+from transformers import (
+    MODEL_MAPPING,
+    MODEL_WITH_LM_HEAD_MAPPING,
+    PretrainedConfig,
+    is_apex_available,
+    is_torch_available,
+)
 
 from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_memory_tracing, stop_memory_tracing
 
@@ -29,6 +35,9 @@ from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_m
 if is_torch_available():
     import torch
     from .benchmark_args import PyTorchBenchmarkArguments
+
+if is_apex_available():
+    import amp
 
 
 logger = logging.getLogger(__name__)
@@ -77,6 +86,16 @@ class PyTorchBenchmark(Benchmark):
         vocab_size = config.vocab_size if hasattr(config, "vocab_size") else config.encoder.vocab_size
         input_ids = torch.randint(vocab_size, (batch_size, sequence_length), dtype=torch.long, device=self.args.device)
 
+        if self.args.fp16:
+            assert self.args.is_gpu, "Apex Mixed Precision is possible only for GPU."
+            if self.args.is_gpu:
+                if not is_apex_available():
+                    raise ImportError(
+                        "Please install apex from https://www.github.com/nvidia/apex to use fp16 training."
+                    )
+
+                model = amp.initialize(model, opt_level=self.args.fp16_opt_level)
+
         if self.args.torchscript:
             with torch.no_grad():
                 inference_model = torch.jit.trace(model, input_ids)
@@ -110,14 +129,30 @@ class PyTorchBenchmark(Benchmark):
         vocab_size = config.vocab_size if hasattr(config, "vocab_size") else config.encoder.vocab_size
         input_ids = torch.randint(vocab_size, (batch_size, sequence_length), dtype=torch.long, device=self.args.device)
 
+        if self.args.fp16:
+            assert self.args.is_gpu, "Apex Mixed Precision is possible only for GPU."
+
+            if not is_apex_available():
+                raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
+
+            model = amp.initialize(model, opt_level=self.args.fp16_opt_level)
+
         def compute_loss_and_backprob_encoder():
             loss = train_model(input_ids, labels=input_ids)[0]
-            loss.backward()
+            if self.args.fp16:
+                with amp.scale_loss(loss) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                loss.backward()
             train_model.zero_grad()
 
         def compute_loss_and_backprob_encoder_decoder():
             loss = train_model(input_ids, decoder_input_ids=input_ids, labels=input_ids)[0]
-            loss.backward()
+            if self.args.fp16:
+                with amp.scale_loss(loss) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                loss.backward()
             train_model.zero_grad()
 
         _train = (

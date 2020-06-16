@@ -140,6 +140,11 @@ class TensorflowBenchmark(Benchmark):
     def _prepare_inference_func(self, model_name, batch_size, sequence_length):
         config = self.config_dict[model_name]
 
+        if self.args.fp16:
+            assert self.is_gpu, "Mixed Precision using keras experimental policy is only allowed for GPU."
+            policy = tf.keras.mixed_precision.experimental.Policy("mixed_float16")
+            tf.keras.mixed_precision.experimental.set_policy(policy)
+
         if self.args.with_lm_head:
             model = TF_MODEL_WITH_LM_HEAD_MAPPING[config.__class__](config)
         else:

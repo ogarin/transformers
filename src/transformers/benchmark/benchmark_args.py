@@ -36,6 +36,15 @@ logger = logging.getLogger(__name__)
 class PyTorchBenchmarkArguments(BenchmarkArguments):
     torchscript: bool = field(default=False, metadata={"help": "Trace the models using torchscript"})
     torch_xla_tpu_print_metrics: bool = field(default=False, metadata={"help": "Print Xla/PyTorch tpu metrics"})
+    fp16_opt_level: str = field(
+        default="O1",
+        metadata={
+            "help": (
+                "For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
+                "See details at https://nvidia.github.io/apex/amp.html"
+            )
+        },
+    )
 
     @cached_property
     @torch_required

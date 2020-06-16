@@ -77,6 +77,7 @@ from .file_utils import (
     add_end_docstrings,
     add_start_docstrings,
     cached_path,
+    is_apex_available,
     is_psutil_available,
     is_py3nvml_available,
     is_tf_available,
