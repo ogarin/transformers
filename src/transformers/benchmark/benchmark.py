@@ -37,7 +37,7 @@ if is_torch_available():
     from .benchmark_args import PyTorchBenchmarkArguments
 
 if is_apex_available():
-    import amp
+    from apex import amp
 
 
 logger = logging.getLogger(__name__)
@@ -88,6 +88,7 @@ class PyTorchBenchmark(Benchmark):
 
         if self.args.fp16:
             assert self.args.is_gpu, "Apex Mixed Precision is possible only for GPU."
+            logger.info("Running training in Mixed Precision...")
             if self.args.is_gpu:
                 if not is_apex_available():
                     raise ImportError(
@@ -130,6 +131,7 @@ class PyTorchBenchmark(Benchmark):
         input_ids = torch.randint(vocab_size, (batch_size, sequence_length), dtype=torch.long, device=self.args.device)
 
         if self.args.fp16:
+            logger.info("Running training in Mixed Precision...")
             assert self.args.is_gpu, "Apex Mixed Precision is possible only for GPU."
 
             if not is_apex_available():
