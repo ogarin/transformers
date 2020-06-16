@@ -691,6 +691,7 @@ class Benchmark(ABC):
             info["architecture"] = platform.architecture()[0]
             info["date"] = datetime.date(datetime.now())
             info["time"] = datetime.time(datetime.now())
+            info["fp16"] = self.args.fp16
 
             if is_psutil_available():
                 info["cpu_ram_mb"] = bytes_to_mega_bytes(psutil.virtual_memory().total)
