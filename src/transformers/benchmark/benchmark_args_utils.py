@@ -53,6 +53,9 @@ class BenchmarkArguments:
     )
 
     no_inference: bool = field(default=False, metadata={"help": "Don't benchmark inference of model"})
+    no_cuda: bool = field(default=False, metadata={"help": "Whether to run on available cuda devices"})
+    no_tpu: bool = field(default=False, metadata={"help": "Whether to run on available tpu devices"})
+    fp16: bool = field(default=False, metadata={"help": "Use FP16 to accelerate inference."})
     training: bool = field(default=False, metadata={"help": "Benchmark training of model"})
     verbose: bool = field(default=False, metadata={"help": "Verbose memory tracing"})
     no_speed: bool = field(default=False, metadata={"help": "Don't perform speed measurments"})
