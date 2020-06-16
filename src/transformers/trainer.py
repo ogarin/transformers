@@ -27,7 +27,7 @@ from .training_args import TrainingArguments
 
 
 if is_apex_available():
-    import amp
+    from apex import amp
 
 if is_torch_tpu_available():
     import torch_xla.core.xla_model as xm
