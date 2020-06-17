@@ -14,11 +14,9 @@ import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
 from datetime import datetime
+from functools import wraps
 from multiprocessing import Pipe, Process, Queue
 from multiprocessing.connection import Connection
-from functools import wraps
-
-
 from typing import Callable, Iterable, List, NamedTuple, Optional, Union
 
 from transformers import AutoConfig, PretrainedConfig
@@ -71,8 +69,10 @@ def run_on_separate_process(func):
     @wraps(func)
     def process(*args, **kwargs):
         if is_torch_available() and torch.cuda.is_initialized():
-            logger.warning("Process should not be run after previous CUDA initialization."
-                           "Multi-Processing is disabled. Note that memory measurements might be inaccurate.")
+            logger.warning(
+                "Process should not be run after previous CUDA initialization."
+                "Multi-Processing is disabled. Note that memory measurements might be inaccurate."
+            )
             return func(*args, **kwargs)
 
         def wrapper_func(queue, *args):
@@ -90,6 +90,7 @@ def run_on_separate_process(func):
         result = queue.get()
         p.join()
         return result
+
     return process
 
 
@@ -566,7 +567,9 @@ class Benchmark(ABC):
             self.config_dict = {model_name: config for model_name, config in zip(self.args.model_names, configs)}
 
         if not self.args.no_memory and os.getenv("TRANSFORMERS_USE_MULTIPROCESSING") == 0:
-            logger.warning("Memory consumption will not be measured accurately if `args.no_multi_process` is set to `True.` The flag 'TRANSFORMERS_USE_MULTIPROCESSING' should only be disabled for debugging / testing.")
+            logger.warning(
+                "Memory consumption will not be measured accurately if `args.no_multi_process` is set to `True.` The flag 'TRANSFORMERS_USE_MULTIPROCESSING' should only be disabled for debugging / testing."
+            )
 
         self._print_fn = None
         self._framework_version = None

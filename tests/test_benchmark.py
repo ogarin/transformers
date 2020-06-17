@@ -51,12 +51,7 @@ class BenchmarkTest(unittest.TestCase):
     def test_inference_fp16(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID],
-            training=False,
-            no_inference=False,
-            fp16=True,
-            sequence_lengths=[8],
-            batch_sizes=[1],
+            models=[MODEL_ID], training=False, no_inference=False, fp16=True, sequence_lengths=[8], batch_sizes=[1],
         )
         benchmark = PyTorchBenchmark(benchmark_args)
         results = benchmark.run()

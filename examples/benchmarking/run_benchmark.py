@@ -15,8 +15,10 @@
 # limitations under the License.
 """ Benchmarking the library on inference and training """
 
-from transformers import HfArgumentParser, PyTorchBenchmark, PyTorchBenchmarkArguments
 import logging
+
+from transformers import HfArgumentParser, PyTorchBenchmark, PyTorchBenchmarkArguments
+
 
 logger = logging.getLogger(__name__)
 
