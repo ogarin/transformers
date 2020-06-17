@@ -14,8 +14,11 @@ import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
 from datetime import datetime
-from multiprocessing import Pipe, Process
+from multiprocessing import Pipe, Process, Queue
 from multiprocessing.connection import Connection
+from functools import wraps
+
+
 from typing import Callable, Iterable, List, NamedTuple, Optional, Union
 
 from transformers import AutoConfig, PretrainedConfig
@@ -27,6 +30,7 @@ from .benchmark_args_utils import BenchmarkArguments
 
 if is_torch_available():
     from torch.cuda import empty_cache as torch_empty_cache
+    import torch
 
 if is_tf_available():
     from tensorflow.python.eager import context as tf_context
@@ -59,6 +63,34 @@ BenchmarkOutput = namedtuple(
         "train_summary",
     ],
 )
+
+
+def run_on_separate_process(func):
+    # run function in an individual
+    # process to get correct memory
+    @wraps(func)
+    def process(*args, **kwargs):
+        if is_torch_available() and torch.cuda.is_initialized():
+            logger.warning("Process should not be run after previous CUDA initialization."
+                           "Multi-Processing is disabled. Note that memory measurements might be inaccurate.")
+            return func(*args, **kwargs)
+
+        def wrapper_func(queue, *args):
+            try:
+                result = func(*args)
+            except Exception as e:
+                logger.error(e)
+                print(e)
+                result = "N/A"
+            queue.put(result)
+
+        queue = Queue()
+        p = Process(target=wrapper_func, args=[queue] + list(args))
+        p.start()
+        result = queue.get()
+        p.join()
+        return result
+    return process
 
 
 def is_memory_tracing_enabled():
@@ -526,13 +558,15 @@ class Benchmark(ABC):
 
     def __init__(self, args: BenchmarkArguments = None, configs: PretrainedConfig = None):
         self.args = args
-
         if configs is None:
             self.config_dict = {
                 model_name: AutoConfig.from_pretrained(model_name) for model_name in self.args.model_names
             }
         else:
             self.config_dict = {model_name: config for model_name, config in zip(self.args.model_names, configs)}
+
+        if not self.args.no_memory and os.getenv("TRANSFORMERS_USE_MULTIPROCESSING") == 0:
+            logger.warning("Memory consumption will not be measured accurately if `args.no_multi_process` is set to `True.` The flag 'TRANSFORMERS_USE_MULTIPROCESSING' should only be disabled for debugging / testing.")
 
         self._print_fn = None
         self._framework_version = None
