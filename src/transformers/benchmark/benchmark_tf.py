@@ -19,11 +19,9 @@
 
 
 import logging
-import os
 import random
 import timeit
 from functools import wraps
-from multiprocessing import Process, Queue
 
 from transformers import (
     TF_MODEL_MAPPING,
@@ -33,7 +31,7 @@ from transformers import (
     is_tf_available,
 )
 
-from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_memory_tracing, stop_memory_tracing
+from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_memory_tracing, stop_memory_tracing, run_on_separate_process
 
 
 if is_tf_available():
@@ -45,30 +43,6 @@ if is_py3nvml_available():
     import py3nvml.py3nvml as nvml
 
 logger = logging.getLogger(__name__)
-
-
-def run_on_separate_process(func):
-    # run function in an individual
-    # process to get correct memory
-    @wraps(func)
-    def process(*args, **kwargs):
-        def wrapper_func(queue, *args):
-            try:
-                logger.info("run with process id: {}".format(os.getpid()))
-                result = func(*args)
-            except Exception:
-                result = "N/A"
-                logger.warning("Exception when running on process id {os.getpid()}.")
-            queue.put(result)
-
-        queue = Queue()
-        p = Process(target=wrapper_func, args=[queue] + list(args))
-        p.start()
-        result = queue.get()
-        p.join()
-        return result
-
-    return process
 
 
 def run_with_tf_optimizations(do_eager_mode, do_xla):
@@ -198,22 +172,12 @@ class TensorflowBenchmark(Benchmark):
                     ), "`args.eager_mode` is set to `False`. Make sure to run model in eager mode to measure memory consumption line by line."
                     trace = start_memory_tracing("transformers")
 
-                if not self.args.no_tpu and self.args.is_tpu:
+                if self.args.is_tpu:
                     # tpu
                     raise NotImplementedError(
                         "Memory Benchmarking is currently not implemented for TPU. Please disable memory benchmarking with `args.no_memory=True`"
                     )
-                if not self.args.is_gpu:
-                    # cpu
-                    if self.args.trace_memory_line_by_line:
-                        logger.info(
-                            "When enabling line by line tracing, the max peak memory for CPU is inaccurate in Tensorflow."
-                        )
-                        memory = None
-                    else:
-                        memory_bytes = measure_peak_memory_cpu(func)
-                        memory = Memory(memory_bytes) if isinstance(memory_bytes, int) else memory_bytes
-                if self.args.is_gpu:
+                elif self.args.is_gpu:
                     # gpu
                     if not is_py3nvml_available():
                         logger.warning(
@@ -231,7 +195,16 @@ class TensorflowBenchmark(Benchmark):
                         memory = Memory(max_bytes_in_use)
                         # shutdown nvml
                         nvml.nvmlShutdown()
-
+                else:
+                    # cpu
+                    if self.args.trace_memory_line_by_line:
+                        logger.info(
+                            "When enabling line by line tracing, the max peak memory for CPU is inaccurate in Tensorflow."
+                        )
+                        memory = None
+                    else:
+                        memory_bytes = measure_peak_memory_cpu(func)
+                        memory = Memory(memory_bytes) if isinstance(memory_bytes, int) else memory_bytes
                 if self.args.trace_memory_line_by_line:
                     summary = stop_memory_tracing(trace)
                     if memory is None:

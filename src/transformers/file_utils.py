@@ -100,7 +100,7 @@ except ImportError:
 
 
 try:
-    from apex import amp
+    from apex import amp  # noqa: F401
 
     _has_apex = True
 except ImportError:
