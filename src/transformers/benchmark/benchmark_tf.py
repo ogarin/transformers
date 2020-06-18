@@ -31,7 +31,14 @@ from transformers import (
     is_tf_available,
 )
 
-from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_memory_tracing, stop_memory_tracing, run_on_separate_process
+from .benchmark_utils import (
+    Benchmark,
+    Memory,
+    measure_peak_memory_cpu,
+    run_on_separate_process,
+    start_memory_tracing,
+    stop_memory_tracing,
+)
 
 
 if is_tf_available():
@@ -208,7 +215,7 @@ class TensorflowBenchmark(Benchmark):
                 if self.args.trace_memory_line_by_line:
                     summary = stop_memory_tracing(trace)
                     if memory is None:
-                        memory.summary.total_memory
+                        memory = summary.total
                 else:
                     summary = None
 

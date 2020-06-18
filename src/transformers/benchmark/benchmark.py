@@ -25,11 +25,18 @@ from transformers import (
     MODEL_MAPPING,
     MODEL_WITH_LM_HEAD_MAPPING,
     PretrainedConfig,
-    is_torch_available,
     is_py3nvml_available,
+    is_torch_available,
 )
 
-from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_memory_tracing, stop_memory_tracing, run_on_separate_process
+from .benchmark_utils import (
+    Benchmark,
+    Memory,
+    measure_peak_memory_cpu,
+    run_on_separate_process,
+    start_memory_tracing,
+    stop_memory_tracing,
+)
 
 
 if is_torch_available():
