@@ -5,7 +5,7 @@ from pathlib import Path
 
 from transformers import AutoConfig, is_torch_available
 
-from .utils import require_torch
+from .utils import require_torch, torch_device
 
 
 if is_torch_available():
@@ -48,6 +48,7 @@ class BenchmarkTest(unittest.TestCase):
         self.check_results_dict_not_empty(results.time_inference_result)
         self.check_results_dict_not_empty(results.memory_inference_result)
 
+    @unittest.skipIf(torch_device == "cpu", "Cant do half precision")
     def test_inference_fp16(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = PyTorchBenchmarkArguments(
@@ -68,6 +69,7 @@ class BenchmarkTest(unittest.TestCase):
         self.check_results_dict_not_empty(results.time_train_result)
         self.check_results_dict_not_empty(results.memory_train_result)
 
+    @unittest.skipIf(torch_device == "cpu", "Cant do half precision")
     def test_train_no_configs_fp16(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = PyTorchBenchmarkArguments(
