@@ -26,7 +26,12 @@ class BenchmarkTest(unittest.TestCase):
     def test_inference_no_configs(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args)
         results = benchmark.run()
@@ -42,6 +47,7 @@ class BenchmarkTest(unittest.TestCase):
             torchscript=True,
             sequence_lengths=[8],
             batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args)
         results = benchmark.run()
@@ -52,7 +58,13 @@ class BenchmarkTest(unittest.TestCase):
     def test_inference_fp16(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, fp16=True, sequence_lengths=[8], batch_sizes=[1],
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            fp16=True,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args)
         results = benchmark.run()
@@ -62,7 +74,12 @@ class BenchmarkTest(unittest.TestCase):
     def test_train_no_configs(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=True, no_inference=True, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=True,
+            no_inference=True,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args)
         results = benchmark.run()
@@ -73,7 +90,13 @@ class BenchmarkTest(unittest.TestCase):
     def test_train_no_configs_fp16(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=True, no_inference=True, sequence_lengths=[8], batch_sizes=[1], fp16=True
+            models=[MODEL_ID],
+            training=True,
+            no_inference=True,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            fp16=True,
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args)
         results = benchmark.run()
@@ -84,7 +107,12 @@ class BenchmarkTest(unittest.TestCase):
         MODEL_ID = "sshleifer/tiny-gpt2"
         config = AutoConfig.from_pretrained(MODEL_ID)
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args, configs=[config])
         results = benchmark.run()
@@ -95,7 +123,12 @@ class BenchmarkTest(unittest.TestCase):
         MODEL_ID = "sshleifer/tinier_bart"
         config = AutoConfig.from_pretrained(MODEL_ID)
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args, configs=[config])
         results = benchmark.run()
@@ -106,7 +139,12 @@ class BenchmarkTest(unittest.TestCase):
         MODEL_ID = "sshleifer/tiny-gpt2"
         config = AutoConfig.from_pretrained(MODEL_ID)
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=True, no_inference=True, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=True,
+            no_inference=True,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args, configs=[config])
         results = benchmark.run()
@@ -117,7 +155,12 @@ class BenchmarkTest(unittest.TestCase):
         MODEL_ID = "sshleifer/tinier_bart"
         config = AutoConfig.from_pretrained(MODEL_ID)
         benchmark_args = PyTorchBenchmarkArguments(
-            models=[MODEL_ID], training=True, no_inference=True, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=True,
+            no_inference=True,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = PyTorchBenchmark(benchmark_args, configs=[config])
         results = benchmark.run()
@@ -139,6 +182,7 @@ class BenchmarkTest(unittest.TestCase):
                 inference_memory_csv_file=os.path.join(tmp_dir, "inf_mem.csv"),
                 train_time_csv_file=os.path.join(tmp_dir, "train_time.csv"),
                 env_info_csv_file=os.path.join(tmp_dir, "env.csv"),
+                no_multi_process=True,
             )
             benchmark = PyTorchBenchmark(benchmark_args)
             benchmark.run()
@@ -167,6 +211,7 @@ class BenchmarkTest(unittest.TestCase):
                 log_filename=os.path.join(tmp_dir, "log.txt"),
                 log_print=True,
                 trace_memory_line_by_line=True,
+                no_multi_process=True,
             )
             benchmark = PyTorchBenchmark(benchmark_args)
             result = benchmark.run()

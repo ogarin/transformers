@@ -14,7 +14,6 @@ import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
 from datetime import datetime
-from functools import wraps
 from multiprocessing import Pipe, Process, Queue
 from multiprocessing.connection import Connection
 from typing import Callable, Iterable, List, NamedTuple, Optional, Union
@@ -28,7 +27,6 @@ from .benchmark_args_utils import BenchmarkArguments
 
 if is_torch_available():
     from torch.cuda import empty_cache as torch_empty_cache
-    import torch
 
 if is_tf_available():
     from tensorflow.python.eager import context as tf_context
@@ -63,18 +61,10 @@ BenchmarkOutput = namedtuple(
 )
 
 
-def run_on_separate_process(func):
-    # run function in an individual
-    # process to get correct memory
-    @wraps(func)
-    def process(*args, **kwargs):
-        if is_torch_available() and torch.cuda.is_initialized():
-            logger.warning(
-                "Process should not be run after previous CUDA initialization."
-                "Multi-Processing is disabled. Note that memory measurements might be inaccurate."
-            )
-            return func(*args, **kwargs)
-
+def separate_process_wrapper_fn(func, do_multi_processing):
+    def multi_process_func(*args, **kwargs):
+        # run function in an individual
+        # process to get correct memory
         def wrapper_func(queue, *args):
             try:
                 result = func(*args)
@@ -91,7 +81,11 @@ def run_on_separate_process(func):
         p.join()
         return result
 
-    return process
+    if do_multi_processing:
+        logging.info("Use multiprocessing...")
+        return multi_process_func
+    else:
+        return func
 
 
 def is_memory_tracing_enabled():
@@ -596,20 +590,32 @@ class Benchmark(ABC):
         pass
 
     @abstractmethod
-    def inference_speed(self, model_name, batch_size, sequence_length):
+    def _inference_speed(self, model_name, batch_size, sequence_length):
         pass
 
     @abstractmethod
-    def train_speed(self, model_name, batch_size, sequence_length):
+    def _train_speed(self, model_name, batch_size, sequence_length):
         pass
 
     @abstractmethod
-    def inference_memory(self, model_name, batch_size, sequence_length):
+    def _inference_memory(self, model_name, batch_size, sequence_length):
         pass
 
     @abstractmethod
-    def train_memory(self, model_name, batch_size, sequence_length):
+    def _train_memory(self, model_name, batch_size, sequence_length):
         pass
+
+    def inference_speed(self, *args, **kwargs):
+        return separate_process_wrapper_fn(self._inference_speed, self.args.do_multi_processing)(*args, **kwargs)
+
+    def train_speed(self, *args, **kwargs):
+        return separate_process_wrapper_fn(self._train_speed, self.args.do_multi_processing)(*args, **kwargs)
+
+    def inference_memory(self, *args, **kwargs):
+        return separate_process_wrapper_fn(self._inference_memory, self.args.do_multi_processing)(*args, **kwargs)
+
+    def train_memory(self, *args, **kwargs):
+        return separate_process_wrapper_fn(self._train_memory, self.args.do_multi_processing)(*args, **kwargs)
 
     def run(self):
         result_dict = {model_name: {} for model_name in self.args.model_names}
@@ -720,7 +726,7 @@ class Benchmark(ABC):
                 info["use_torchscript"] = self.args.torchscript
             if self.framework == "Tensorflow":
                 info["eager_mode"] = self.args.eager_mode
-                info["usa_xla"] = self.args.use_xla
+                info["use_xla"] = self.args.use_xla
             info["framework_version"] = self.framework_version
             info["python_version"] = platform.python_version()
             info["system"] = platform.system()
@@ -729,6 +735,7 @@ class Benchmark(ABC):
             info["date"] = datetime.date(datetime.now())
             info["time"] = datetime.time(datetime.now())
             info["fp16"] = self.args.fp16
+            info["use_multiprocessing"] = self.args.do_multi_processing
 
             if is_psutil_available():
                 info["cpu_ram_mb"] = bytes_to_mega_bytes(psutil.virtual_memory().total)

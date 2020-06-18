@@ -30,6 +30,7 @@ class TFBenchmarkTest(unittest.TestCase):
             sequence_lengths=[8],
             batch_sizes=[1],
             eager_mode=True,
+            no_multi_process=True,
         )
         benchmark = TensorflowBenchmark(benchmark_args)
         results = benchmark.run()
@@ -39,7 +40,12 @@ class TFBenchmarkTest(unittest.TestCase):
     def test_inference_no_configs_graph(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = TensorflowBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, sequence_lengths=[8], batch_sizes=[1],
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = TensorflowBenchmark(benchmark_args)
         results = benchmark.run()
@@ -56,6 +62,7 @@ class TFBenchmarkTest(unittest.TestCase):
             sequence_lengths=[8],
             batch_sizes=[1],
             eager_mode=True,
+            no_multi_process=True,
         )
         benchmark = TensorflowBenchmark(benchmark_args, [config])
         results = benchmark.run()
@@ -66,7 +73,12 @@ class TFBenchmarkTest(unittest.TestCase):
         MODEL_ID = "sshleifer/tiny-gpt2"
         config = AutoConfig.from_pretrained(MODEL_ID)
         benchmark_args = TensorflowBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = TensorflowBenchmark(benchmark_args, [config])
         results = benchmark.run()
@@ -77,7 +89,12 @@ class TFBenchmarkTest(unittest.TestCase):
         MODEL_ID = "patrickvonplaten/t5-tiny-random"
         config = AutoConfig.from_pretrained(MODEL_ID)
         benchmark_args = TensorflowBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, sequence_lengths=[8], batch_sizes=[1]
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            no_multi_process=True,
         )
         benchmark = TensorflowBenchmark(benchmark_args, configs=[config])
         results = benchmark.run()
@@ -88,7 +105,13 @@ class TFBenchmarkTest(unittest.TestCase):
     def test_inference_no_configs_xla(self):
         MODEL_ID = "sshleifer/tiny-gpt2"
         benchmark_args = TensorflowBenchmarkArguments(
-            models=[MODEL_ID], training=False, no_inference=False, sequence_lengths=[8], batch_sizes=[1], use_xla=True
+            models=[MODEL_ID],
+            training=False,
+            no_inference=False,
+            sequence_lengths=[8],
+            batch_sizes=[1],
+            use_xla=True,
+            no_multi_process=True,
         )
         benchmark = TensorflowBenchmark(benchmark_args)
         results = benchmark.run()
@@ -107,6 +130,7 @@ class TFBenchmarkTest(unittest.TestCase):
                 inference_time_csv_file=os.path.join(tmp_dir, "inf_time.csv"),
                 inference_memory_csv_file=os.path.join(tmp_dir, "inf_mem.csv"),
                 env_info_csv_file=os.path.join(tmp_dir, "env.csv"),
+                no_multi_process=True,
             )
             benchmark = TensorflowBenchmark(benchmark_args)
             benchmark.run()
@@ -133,6 +157,7 @@ class TFBenchmarkTest(unittest.TestCase):
                 log_print=True,
                 trace_memory_line_by_line=True,
                 eager_mode=True,
+                no_multi_process=True,
             )
             benchmark = TensorflowBenchmark(benchmark_args)
             result = benchmark.run()

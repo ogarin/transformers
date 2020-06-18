@@ -29,14 +29,7 @@ from transformers import (
     is_torch_available,
 )
 
-from .benchmark_utils import (
-    Benchmark,
-    Memory,
-    measure_peak_memory_cpu,
-    run_on_separate_process,
-    start_memory_tracing,
-    stop_memory_tracing,
-)
+from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_memory_tracing, stop_memory_tracing
 
 
 if is_torch_available():
@@ -61,23 +54,19 @@ class PyTorchBenchmark(Benchmark):
     def framework_version(self):
         return torch.__version__
 
-    @run_on_separate_process
-    def inference_speed(self, model_name, batch_size, sequence_length):
+    def _inference_speed(self, model_name, batch_size, sequence_length):
         _inference = self._prepare_inference_func(model_name, batch_size, sequence_length)
         return self._measure_speed(_inference)
 
-    @run_on_separate_process
-    def inference_memory(self, model_name, batch_size, sequence_length):
+    def _inference_memory(self, model_name, batch_size, sequence_length):
         _inference = self._prepare_inference_func(model_name, batch_size, sequence_length)
         return self._measure_memory(_inference)
 
-    @run_on_separate_process
-    def train_speed(self, model_name, batch_size, sequence_length):
+    def _train_speed(self, model_name, batch_size, sequence_length):
         _train = self._prepare_train_func(model_name, batch_size, sequence_length)
         return self._measure_speed(_train)
 
-    @run_on_separate_process
-    def train_memory(self, model_name, batch_size, sequence_length):
+    def _train_memory(self, model_name, batch_size, sequence_length):
         _train = self._prepare_train_func(model_name, batch_size, sequence_length)
         return self._measure_memory(_train)
 

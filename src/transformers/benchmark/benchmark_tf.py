@@ -31,14 +31,7 @@ from transformers import (
     is_tf_available,
 )
 
-from .benchmark_utils import (
-    Benchmark,
-    Memory,
-    measure_peak_memory_cpu,
-    run_on_separate_process,
-    start_memory_tracing,
-    stop_memory_tracing,
-)
+from .benchmark_utils import Benchmark, Memory, measure_peak_memory_cpu, start_memory_tracing, stop_memory_tracing
 
 
 if is_tf_available():
@@ -90,21 +83,19 @@ class TensorflowBenchmark(Benchmark):
     def framework_version(self):
         return tf.__version__
 
-    @run_on_separate_process
-    def inference_speed(self, model_name, batch_size, sequence_length):
+    def _inference_speed(self, model_name, batch_size, sequence_length):
         # initialize GPU on separate process
         strategy = self.args.strategy
         assert strategy is not None, "A device strategy has to be initialized before using Tensorflow."
         _inference = self._prepare_inference_func(model_name, batch_size, sequence_length)
         return self._measure_speed(_inference)
 
-    def train_speed(self, model_name, batch_size, sequence_length):
+    def _train_speed(self, model_name, batch_size, sequence_length):
         raise NotImplementedError(
             "Training is currently not really implemented." "Wait for TFTrainer to support CLM and MLM."
         )
 
-    @run_on_separate_process
-    def inference_memory(self, model_name, batch_size, sequence_length):
+    def _inference_memory(self, model_name, batch_size, sequence_length):
         # initialize GPU on separate process
         if self.args.is_gpu:
             tf.config.experimental.set_memory_growth(self.args.gpu_list[self.args.device_idx], True)
@@ -113,7 +104,7 @@ class TensorflowBenchmark(Benchmark):
         _inference = self._prepare_inference_func(model_name, batch_size, sequence_length)
         return self._measure_memory(_inference)
 
-    def train_memory(self, model_name, batch_size, sequence_length):
+    def _train_memory(self, model_name, batch_size, sequence_length):
         raise NotImplementedError(
             "Training is currently not really implemented. Wait for TFTrainer to support CLM and MLM."
         )

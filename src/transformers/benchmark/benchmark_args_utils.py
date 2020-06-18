@@ -16,9 +16,13 @@
 
 import dataclasses
 import json
+import logging
 from dataclasses import dataclass, field
 from time import time
 from typing import List
+
+
+logger = logging.getLogger(__name__)
 
 
 def list_field(default=None, metadata=None):
@@ -64,6 +68,12 @@ class BenchmarkArguments:
     save_to_csv: bool = field(default=False, metadata={"help": "Save result to a CSV file"})
     log_print: bool = field(default=False, metadata={"help": "Save all print statements in a log file"})
     no_env_print: bool = field(default=False, metadata={"help": "Don't print environment information"})
+    no_multi_process: bool = field(
+        default=False,
+        metadata={
+            "help": "Don't use multiprocessing for memory and speed measurement. It is highly recommended to use multiprocessing for accurate CPU and GPU memory measurements. This option should only be used for debugging / testing and on TPU."
+        },
+    )
     with_lm_head: bool = field(
         default=False,
         metadata={
@@ -105,3 +115,13 @@ class BenchmarkArguments:
     @property
     def model_names(self):
         return self.models
+
+    @property
+    def do_multi_processing(self):
+        if self.no_multi_process:
+            return False
+        elif self.is_tpu:
+            logger.warning("Multiprocessing is currently not possible on TPU.")
+            return False
+        else:
+            return True
