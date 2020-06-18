@@ -122,10 +122,7 @@ class TensorflowBenchmark(Benchmark):
         config = self.config_dict[model_name]
 
         if self.args.fp16:
-            logger.info("Running model with mixed precision using keras experimental policy")
-            assert self.args.is_gpu, "Mixed Precision using keras experimental policy is only allowed for GPU."
-            policy = tf.keras.mixed_precision.experimental.Policy("mixed_float16")
-            tf.keras.mixed_precision.experimental.set_policy(policy)
+            raise NotImplementedError("Mixed precision is currently not supported.")
 
         if self.args.with_lm_head:
             model = TF_MODEL_WITH_LM_HEAD_MAPPING[config.__class__](config)
