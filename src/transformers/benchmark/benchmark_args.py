@@ -63,7 +63,7 @@ class PyTorchBenchmarkArguments(BenchmarkArguments):
 
     @property
     def is_tpu(self):
-        return is_torch_tpu_available() and not self.args.no_tpu
+        return is_torch_tpu_available() and not self.no_tpu
 
     @property
     @torch_required

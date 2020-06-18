@@ -82,7 +82,7 @@ class TensorflowBenchmarkArguments(BenchmarkArguments):
     @tf_required
     def is_tpu(self) -> bool:
         tpu = self._setup_strategy[1]
-        return tpu is not None and not self.args.no_tpu
+        return tpu is not None and not self.no_tpu
 
     @property
     @tf_required
